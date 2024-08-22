@@ -19,3 +19,9 @@ numpy: 1.22.4
 torch: 1.8.0
 
 All works well with venv :-)
+
+# reference
+
+https://github.com/yy6768/minitorch/tree/master
+https://zhuanlan.zhihu.com/p/615920005
+https://dezeming.top/wp-content/uploads/2022/02/MiniTorch-%E5%AD%A6%E4%B9%A0%E5%85%A8%E6%94%BB%E7%95%A5.pdf
