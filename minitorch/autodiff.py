@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, Iterable, List, Tuple
 
@@ -65,8 +66,20 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    res = []
+    visited = set()
+    def iter_and_push(root: Variable):
+        if root.is_constant() or root.unique_id in visited: return
+
+        if not root.is_leaf():
+            for node in root.parents:
+                iter_and_push(node)
+
+        res.append(root)
+        visited.add(root.unique_id)
+
+    iter_and_push(variable)
+    return reversed(res)
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -80,8 +93,21 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError('Need to implement for Task 1.4')
+    # FIXME: Task 1.4
+    deriv_cache = defaultdict(float)
+    deriv_cache[variable.unique_id] = deriv
+    for node in topological_sort(variable):
+        if node.is_leaf():
+            continue
+        node_deriv = deriv_cache[node.unique_id]
+        for n_,d_ in node.chain_rule(node_deriv):
+            if n_.is_leaf():
+                n_.accumulate_derivative(d_)
+            else:
+                deriv_cache[n_.unique_id] += d_
+
+
+
 
 
 @dataclass
