@@ -23,7 +23,7 @@ def tile(input: Tensor, kernel: Tuple[int, int]) -> Tuple[Tensor, int, int]:
     kh, kw = kernel
     assert height % kh == 0
     assert width % kw == 0
-    # TODO: Implement for Task 4.3.
+    #  for Task 4.3.
     raise NotImplementedError('Need to implement for Task 4.3')
 
 

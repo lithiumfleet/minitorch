@@ -1,3 +1,5 @@
+from numpy import ndarray
+import numpy
 import pytest
 from hypothesis import given
 from hypothesis.strategies import DataObject, data
@@ -119,6 +121,19 @@ def test_shape_broadcast() -> None:
     c = minitorch.shape_broadcast((2, 5), (5,))
     assert c == (2, 5)
 
+@pytest.mark.task2_2
+def test_broadcast_index() -> None:
+    o1 = numpy.array([0,0])
+    minitorch.broadcast_index(numpy.array([1,1]),numpy.array([3,3]),numpy.array([1,3]), o1)
+    assert o1.tolist() == [0,1]
+
+    o2 = numpy.array([0,0,0])
+    minitorch.broadcast_index(numpy.array([1,0,0]),numpy.array([2,1,2]),numpy.array([2,1,1]), o2)
+    assert o2.tolist() == [1,0,0]
+
+    o3 = numpy.array([0])
+    minitorch.broadcast_index(numpy.array([1,0,0]),numpy.array([2,1,2]),numpy.array([2]), o3)
+    assert o3.tolist() == [0]
 
 @given(tensor_data())
 def test_string(tensor_data: TensorData) -> None:

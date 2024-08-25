@@ -93,18 +93,17 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # FIXME: Task 1.4
     deriv_cache = defaultdict(float)
     deriv_cache[variable.unique_id] = deriv
     for node in topological_sort(variable):
         if node.is_leaf():
             continue
         node_deriv = deriv_cache[node.unique_id]
-        for n_,d_ in node.chain_rule(node_deriv):
-            if n_.is_leaf():
-                n_.accumulate_derivative(d_)
+        for n,d in node.chain_rule(node_deriv):
+            if n.is_leaf():
+                n.accumulate_derivative(d)
             else:
-                deriv_cache[n_.unique_id] += d_
+                deriv_cache[n.unique_id] += d
 
 
 
