@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable, Optional, Type
 
-import numpy as np
 from typing_extensions import Protocol
 
 from . import operators
 from .tensor_data import (
-    MAX_DIMS,
     broadcast_index,
     index_to_position,
     shape_broadcast,
@@ -264,8 +262,15 @@ def tensor_map(
         in_shape: Shape,
         in_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        # map index
+        out_index, in_index = Index(out_shape), Index(in_shape)
+        # data process
+        for out_pos in range(len(out)):
+            to_index(out_pos, out_shape, out_index)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            in_pos = index_to_position(in_index, in_strides)
+            assert out_pos == index_to_position(out_index, out_strides)
+            out[out_pos] = fn(in_storage[in_pos])
 
     return _map
 
@@ -309,8 +314,14 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        out_index, a_index, b_index = Index(out_shape), Index(a_shape), Index(b_shape)
+        for out_pos in range(len(out)):
+            to_index(out_pos, out_shape, out_index)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            a_pos, b_pos = index_to_position(a_index, a_strides), index_to_position(b_index, b_strides)
+            assert out_pos == index_to_position(out_index, out_strides)
+            out[out_pos] = fn(float(a_storage[a_pos]), float(b_storage[b_pos]))
 
     return _zip
 
@@ -340,8 +351,15 @@ def tensor_reduce(
         a_strides: Strides,
         reduce_dim: int,
     ) -> None:
-        # TODO: Implement for Task 2.3.
-        raise NotImplementedError('Need to implement for Task 2.3')
+        # out_shape will be the same as a_shape
+        out_index, a_index = Index(out_shape), Index(a_shape)
+        for out_pos in range(len(out)):
+            a_index = out_index.copy()
+            to_index(out_pos, out_shape, out_index)
+            for _i in range(a_shape[reduce_dim]):
+                a_index[reduce_dim] = _i
+                a_pos = index_to_position(a_index, a_strides)
+                out[out_pos] = fn(a_storage[a_pos], out[out_pos])
 
     return _reduce
 

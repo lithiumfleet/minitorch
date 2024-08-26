@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 import minitorch
+from minitorch.cuda_ops import tensor_zip
 
 from . import operators
 from .autodiff import Context
