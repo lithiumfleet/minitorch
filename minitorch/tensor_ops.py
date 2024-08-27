@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from .tensor_data import Index, Shape, Storage, Strides
 
 
+import numpy as np
+
 class MapProto(Protocol):
     def __call__(self, x: Tensor, out: Optional[Tensor] = ..., /) -> Tensor:
         ...
@@ -263,7 +265,7 @@ def tensor_map(
         in_strides: Strides,
     ) -> None:
         # map index
-        out_index, in_index = Index(out_shape), Index(in_shape)
+        out_index, in_index = np.array(out_shape), np.array(in_shape)
         # data process
         for out_pos in range(len(out)):
             to_index(out_pos, out_shape, out_index)
@@ -314,7 +316,7 @@ def tensor_zip(
         b_shape: Shape,
         b_strides: Strides,
     ) -> None:
-        out_index, a_index, b_index = Index(out_shape), Index(a_shape), Index(b_shape)
+        out_index, a_index, b_index = np.array(out_shape), np.array(a_shape), np.array(b_shape)
         for out_pos in range(len(out)):
             to_index(out_pos, out_shape, out_index)
             broadcast_index(out_index, out_shape, a_shape, a_index)
@@ -352,13 +354,14 @@ def tensor_reduce(
         reduce_dim: int,
     ) -> None:
         # out_shape will be the same as a_shape
-        out_index, a_index = Index(out_shape), Index(a_shape)
+        out_index = np.array(out_shape)
         for out_pos in range(len(out)):
-            a_index = out_index.copy()
             to_index(out_pos, out_shape, out_index)
+            a_index = out_index.copy()
             for _i in range(a_shape[reduce_dim]):
                 a_index[reduce_dim] = _i
                 a_pos = index_to_position(a_index, a_strides)
+                assert out_pos == index_to_position(out_index, out_strides)
                 out[out_pos] = fn(a_storage[a_pos], out[out_pos])
 
     return _reduce

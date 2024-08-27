@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 import minitorch
-from minitorch.cuda_ops import tensor_zip
 
 from . import operators
 from .autodiff import Context
@@ -100,6 +99,7 @@ class Add(Function):
 class Mul(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.f.mul_zip(a,b)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
@@ -112,6 +112,7 @@ class Mul(Function):
 class Sigmoid(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        return t1.f.sigmoid_map(t1)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
@@ -124,6 +125,7 @@ class Sigmoid(Function):
 class ReLU(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        return t1.f.relu_map(t1)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
@@ -136,6 +138,7 @@ class ReLU(Function):
 class Log(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        return t1.f.log_map(t1)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
@@ -148,6 +151,7 @@ class Log(Function):
 class Exp(Function):
     @staticmethod
     def forward(ctx: Context, t1: Tensor) -> Tensor:
+        return t1.f.exp_map(t1)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
@@ -181,6 +185,7 @@ class All(Function):
 class LT(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.f.lt_zip(a,b)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
@@ -193,6 +198,7 @@ class LT(Function):
 class EQ(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.f.eq_zip(a, b)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
@@ -205,6 +211,7 @@ class EQ(Function):
 class IsClose(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, b: Tensor) -> Tensor:
+        return a.f.is_close_zip(a,b)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
@@ -212,6 +219,7 @@ class IsClose(Function):
 class Permute(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
+        return a.permute(*order)
         # TODO: Implement for Task 2.3.
         raise NotImplementedError('Need to implement for Task 2.3')
 
