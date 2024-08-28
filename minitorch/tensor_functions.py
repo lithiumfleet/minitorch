@@ -227,9 +227,9 @@ class Permute(Function):
         return a._new(a._tensor.permute(*order))
 
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
-        order = ctx.saved_values
+        order, = ctx.saved_values
         order = [a[0] for a in sorted(enumerate(order), key=lambda a: a[1])]
-        return grad_output._new(grad_output._tensor.permute(*order))
+        return grad_output._new(grad_output._tensor.permute(*order)), 0.0
 
 
 class View(Function):
