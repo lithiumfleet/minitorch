@@ -153,8 +153,7 @@ class Log(Function):
 
     @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tensor:
-        tensor_tuple:Tuple[Tensor] = ctx.saved_tensors
-        t1, = tensor_tuple
+        t1, = ctx.saved_tensors
         return t1.f.log_back_zip(t1, grad_output)
 
 
@@ -223,9 +222,14 @@ class IsClose(Function):
 class Permute(Function):
     @staticmethod
     def forward(ctx: Context, a: Tensor, order: Tensor) -> Tensor:
-        ctx.save_for_backward(order)
-        return a._new(a._tensor.permute(*order))
+        # can not save order like this: ctx.save_for_backward(order)
+        order_in_int = [int(order[i]) for i in range(order.size)]
+        ctx.save_for_backward(order_in_int) 
 
+        return a._new(a._tensor.permute(*order_in_int))
+
+
+    @staticmethod
     def backward(ctx: Context, grad_output: Tensor) -> Tuple[Tensor, float]:
         order, = ctx.saved_values
         order = [a[0] for a in sorted(enumerate(order), key=lambda a: a[1])]
