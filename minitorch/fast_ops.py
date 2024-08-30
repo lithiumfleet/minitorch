@@ -207,25 +207,13 @@ def tensor_zip(
         b_strides: Strides,
     ) -> None:
 
-        for i in prange(len(out)):
-            a_index=np.zeros(MAX_DIMS,np.int32)
-            b_index=np.zeros(MAX_DIMS,np.int32)
-            o_index=np.zeros(MAX_DIMS,np.int32)
-            to_index(i,out_shape,o_index)
-            broadcast_index(o_index,out_shape,a_shape,a_index)
-            broadcast_index(o_index,out_shape,b_shape,b_index)
-            a_data=a_storage[index_to_position(a_index,a_strides)]
-            b_data=b_storage[index_to_position(b_index,b_strides)]
-            map_data=fn(a_data,b_data)
-            out[index_to_position(o_index,out_strides)]=map_data
-
-        # for out_pos in prange(len(out)):
-        #     out_index, a_index, b_index = np.zeros(len(out_shape), np.int32), np.zeros(len(a_shape), np.int32), np.zeros(len(b_shape), np.int32)
-        #     to_index(out_pos, out_shape, out_index)
-        #     broadcast_index(out_index, out_shape, a_shape, a_index)
-        #     broadcast_index(out_index, out_shape, b_shape, b_index)
-        #     a_pos, b_pos = index_to_position(a_index, a_strides), index_to_position(b_index, b_strides)
-        #     out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos]) # FIXME:
+        for out_pos in prange(len(out)):
+            out_index, a_index, b_index = np.zeros(len(out_shape), np.int32), np.zeros(len(a_shape), np.int32), np.zeros(len(b_shape), np.int32)
+            to_index(out_pos, out_shape, out_index)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            a_pos, b_pos = index_to_position(a_index, a_strides), index_to_position(b_index, b_strides)
+            out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos])
 
         # TODO: Implement for Task 3.1.
         # raise NotImplementedError('Need to implement for Task 3.1')
