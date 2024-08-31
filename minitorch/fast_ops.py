@@ -280,6 +280,8 @@ def _tensor_matrix_multiply(
     """
     NUMBA tensor matrix multiply function.
 
+    > This is the bmm in pytorch: [link](https://pytorch.org/docs/stable/generated/torch.bmm.html#torch.bmm)
+
     Should work for any tensor shapes that broadcast as long as
 
     ```
@@ -307,11 +309,33 @@ def _tensor_matrix_multiply(
     Returns:
         None : Fills in `out`
     """
-    a_batch_stride = a_strides[0] if a_shape[0] > 1 else 0
-    b_batch_stride = b_strides[0] if b_shape[0] > 1 else 0
 
+    for _out_pos in prange(len(out)):
+        out_index = out_shape.copy()
+        out_pos = _out_pos + 0
+        to_index(out_pos, out_shape, out_index)
+
+        # FIXME: (Also in other code) 
+        # out_pos may not be equal to index_to_position(out_index, out_strides) when the Tensor is non-contiguous
+
+        # ein_sum("ij,jk->ik")
+        for j in range(a_shape[-1]):
+
+            a_index = a_shape.copy()
+            out_index_for_a = out_index.copy()
+            out_index_for_a[-1] = j
+            broadcast_index(out_index_for_a, out_shape, a_shape, a_index)
+            a_pos = index_to_position(a_index, a_strides)
+
+            b_index = b_shape.copy()
+            out_index_for_b = out_index.copy()
+            out_index_for_b[-2] = j
+            broadcast_index(out_index_for_b, out_shape, b_shape, b_index)
+            b_pos = index_to_position(b_index, b_strides)
+
+            out[out_pos] += a_storage[a_pos] * b_storage[b_pos]
     # TODO: Implement for Task 3.2.
-    raise NotImplementedError('Need to implement for Task 3.2')
+    # raise NotImplementedError('Need to implement for Task 3.2')
 
 
 tensor_matrix_multiply = njit(parallel=True, fastmath=True)(_tensor_matrix_multiply)
