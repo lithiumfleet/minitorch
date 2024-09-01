@@ -14,16 +14,21 @@ To access the autograder:
 
 # solve requirements
 
-python version need: 3.9
+python version need: 3.9 / 3.8.10
 numpy: 1.22.4
 torch: 1.8.0
 
 All works well with venv :-)
+> Plaase ignore the version conflict by torch and numpy, use numpy=1.22.4 is ok.
 
 # another version?
 
 It seems that this version is different from others...
 May be I should fork another version.
+> Solved, no need to change
+
+# Current process
+- [ ] task3.3
 
 # reference
 
@@ -36,3 +41,5 @@ https://github.com/lvsizhe/Module-3/blob/master/minitorch/tensor_functions.py
 
 https://stackoverflow.com/questions/50744686/numba-typingerror-cannot-determine-numba-type-of-class-builtin-function-or
 https://numba.pydata.org/numba-doc/dev/reference/numpysupported.html
+
+https://www.cnblogs.com/xuesu/p/18067193
