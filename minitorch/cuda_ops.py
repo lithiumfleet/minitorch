@@ -2,6 +2,7 @@ from typing import Callable, Optional
 
 import numba
 from numba import cuda
+import numpy
 
 from .tensor import Tensor
 from .tensor_data import (
@@ -157,9 +158,11 @@ def tensor_map(
             in_index = cuda.local.array(MAX_DIMS, numba.int32)
 
             to_index(i, out_shape, out_index)
-            out_pos = index_to_position(out_index, out_strides)
             broadcast_index(out_index, out_shape, in_shape, in_index)
+
+            out_pos = index_to_position(out_index, out_strides)
             in_pos = index_to_position(in_index, in_strides)
+
             out[out_pos] = fn(in_storage[in_pos])
             
         # TODO: Implement for Task 3.3.
@@ -206,10 +209,12 @@ def tensor_zip(
             a_index = cuda.local.array(MAX_DIMS, numba.int32)
             b_index = cuda.local.array(MAX_DIMS, numba.int32)
 
-            out_pos = index_to_position(out_index, out_strides)
+            to_index(i, out_shape, out_index) # get out_index
             broadcast_index(out_index, out_shape, a_shape, a_index)
-            a_pos = index_to_position(a_index, a_strides)
             broadcast_index(out_index, out_shape, b_shape, b_index)
+
+            out_pos = index_to_position(out_index, out_strides)
+            a_pos = index_to_position(a_index, a_strides)
             b_pos = index_to_position(b_index, b_strides)
 
             out[out_pos] = fn(a_storage[a_pos], b_storage[b_pos])
@@ -241,23 +246,41 @@ def _sum_practice(out: Storage, a: Storage, size: int) -> None:
         size (int):  length of a.
 
     """
-    BLOCK_DIM = 32
 
-    cache = cuda.shared.array(BLOCK_DIM, numba.float64)
-    i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
-    pos = cuda.threadIdx.x
+    shmem = cuda.shared.array(THREADS_PER_BLOCK, numba.float64)
 
-    if size > i:
-        cache[pos] = a[i]
-        cuda.syncthreads()
-        s = 1
-        while s < BLOCK_DIM:
-            if pos % (2*s) == 0 and pos + s < BLOCK_DIM and i + s < size:
-                cache[pos] += cache[pos + s]
-            s *= 2
-            cuda.syncthreads()
-        if pos == 0:
-            out[cuda.blockIdx.x] = cache[pos]
+    idx = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+    if idx >= size:
+        shmem[cuda.threadIdx.x] = 0
+    else:
+        shmem[cuda.threadIdx.x] = a[idx]
+
+    cuda.syncthreads()
+
+    if cuda.threadIdx.x == 0:
+        t = cuda.local.array(1, numba.float64)
+        for i in range(THREADS_PER_BLOCK):
+            t[0] += shmem[i]
+        out[cuda.blockIdx.x] = t[0]
+
+
+    # BLOCK_DIM = 32
+
+    # cache = cuda.shared.array(BLOCK_DIM, numba.float64)
+    # i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+    # pos = cuda.threadIdx.x
+
+    # if size > i:
+    #     cache[pos] = a[i]
+    #     cuda.syncthreads()
+    #     s = 1
+    #     while s < BLOCK_DIM:
+    #         if pos % (2*s) == 0 and pos + s < BLOCK_DIM and i + s < size:
+    #             cache[pos] += cache[pos + s]
+    #         s *= 2
+    #         cuda.syncthreads()
+    #     if pos == 0:
+    #         out[cuda.blockIdx.x] = cache[pos]
 
     # TODO: Implement for Task 3.3.
     # raise NotImplementedError('Need to implement for Task 3.3')
@@ -303,18 +326,22 @@ def tensor_reduce(
         reduce_dim: int,
         reduce_value: float,
     ) -> None:
-        out_index = cuda.local.array(MAX_DIMS, numba.int32)
-        a_index = cuda.local.array(MAX_DIMS, numba.int32)
 
-        pos = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
-        if out_size > pos:
-            to_index(pos, out_shape, out_index)
-            out[pos] = reduce_value
+        tid = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
+        if out_size > tid:
+            out[tid] = reduce_value
+
+            out_index = cuda.local.array(MAX_DIMS, numba.int32)
+            a_index = cuda.local.array(MAX_DIMS, numba.int32)
+
+            to_index(tid, out_shape, out_index)
+
             for _i in range(a_shape[reduce_dim]):
-                to_index(pos, out_shape, a_index)
+                to_index(tid, out_shape, a_index)
                 a_index[reduce_dim] = _i
                 pos_a = index_to_position(a_index, a_strides)
-                out[pos] = fn(out[pos], a_storage[pos_a])
+
+                out[tid] = fn(out[tid], a_storage[pos_a])
 
         # TODO: Implement for Task 3.3.
         # raise NotImplementedError('Need to implement for Task 3.3')
