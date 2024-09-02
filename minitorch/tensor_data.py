@@ -63,7 +63,6 @@ def to_index(ordinal: int, shape: Shape, out_index: OutIndex) -> None:
 
     """
     _ordinal = ordinal + 0 # WTF????????
-    print("[to_index] i ", ordinal)
     for i in range(len(shape)-1, -1, -1): # ... 6
         out_index[i] = _ordinal % shape[i]
         _ordinal //= shape[i]
