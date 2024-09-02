@@ -246,23 +246,7 @@ def _sum_practice(out: Storage, a: Storage, size: int) -> None:
         size (int):  length of a.
 
     """
-
-    # shmem = cuda.shared.array(THREADS_PER_BLOCK, numba.float64)
-
-    # idx = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
-    # if idx >= size:
-    #     shmem[cuda.threadIdx.x] = 0
-    # else:
-    #     shmem[cuda.threadIdx.x] = a[idx]
-
-    # cuda.syncthreads()
-
-    # if cuda.threadIdx.x == 0:
-    #     t = cuda.local.array(1, numba.float64)
-    #     for i in range(THREADS_PER_BLOCK):
-    #         t[0] += shmem[i]
-    #     out[cuda.blockIdx.x] = t[0]
-
+    # binary reduce sum
 
     BLOCK_DIM = 32
 
@@ -447,30 +431,18 @@ def _tensor_matrix_multiply(
     Returns:
         None : Fills in `out`
     """
-    a_batch_stride = a_strides[0] if a_shape[0] > 1 else 0
-    b_batch_stride = b_strides[0] if b_shape[0] > 1 else 0
+
     # Batch dimension - fixed
     batch = cuda.blockIdx.z
 
-    BLOCK_DIM = 32
-    a_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
-    b_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
+    # without shared mem
+    # BLOCK_DIM = 32
+    # a_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
+    # b_shared = cuda.shared.array((BLOCK_DIM, BLOCK_DIM), numba.float64)
 
     # The final position c[i, j]
     i = cuda.blockIdx.x * cuda.blockDim.x + cuda.threadIdx.x
     j = cuda.blockIdx.y * cuda.blockDim.y + cuda.threadIdx.y
-
-    # The local position in the block.
-    pi = cuda.threadIdx.x
-    pj = cuda.threadIdx.y
-
-    # Code Plan:
-    # 1) Move across shared dimension by block dim.
-    #    a) Copy into shared memory for a matrix.
-    #    b) Copy into shared memory for b matrix
-    #    c) Compute the dot produce for position c[i, j]
-    # TODO: Implement for Task 3.4.
-    # raise NotImplementedError('Need to implement for Task 3.4')
 
     pos = cuda.gridDim.x*cuda.gridDim.y * cuda.blockDim.x*cuda.blockDim.y*batch + cuda.gridDim.x*cuda.blockDim.x*j + i
 
@@ -489,5 +461,14 @@ def _tensor_matrix_multiply(
             b_index[len(b_shape)-2] = j
             pos_b = index_to_position(b_index, b_strides)
             out[pos] += (a_storage[pos_a] * b_storage[pos_b])
+
+    # Code Plan:
+    # 1) Move across shared dimension by block dim.
+    #    a) Copy into shared memory for a matrix.
+    #    b) Copy into shared memory for b matrix
+    #    c) Compute the dot produce for position c[i, j]
+    # TODO: Implement for Task 3.4.
+    # raise NotImplementedError('Need to implement for Task 3.4')
+
 
 tensor_matrix_multiply = cuda.jit(_tensor_matrix_multiply)

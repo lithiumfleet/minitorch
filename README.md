@@ -17,6 +17,7 @@ To access the autograder:
 python version need: 3.9 / 3.8.10
 numpy: 1.22.4
 torch: 1.8.0
+cuda version: 11.x (must < 12.x for numba)
 
 All works well with venv :-)
 > Plaase ignore the version conflict by torch and numpy, use numpy=1.22.4 is ok.
@@ -28,9 +29,11 @@ May be I should fork another version.
 > Solved, no need to change
 
 # Current process
-- [ ] task3.3
+Finished task1.* to task3.*
+> No plan for implementing task4.* :-( maybe you can use pytorch instead.
 
 # reference
+> Thanks!
 
 https://github.com/yy6768/minitorch/tree/master
 https://zhuanlan.zhihu.com/p/615920005
